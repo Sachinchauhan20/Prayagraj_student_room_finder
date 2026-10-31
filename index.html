@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -7,19 +6,18 @@
 <title>Prayagraj Student Room Finder</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#182238}
-header{background:#1746a2;color:white;padding:24px 16px;text-align:center}
-header h1{margin:0 0 10px;font-size:25px}
-header p{margin:0}
-main{max-width:700px;margin:18px auto;padding:0 14px}
-.card{background:white;padding:18px;border-radius:14px;margin-bottom:16px;box-shadow:0 3px 12px #0000000d}
-h2{font-size:20px;margin-top:0}
+body{margin:0;font-family:Arial;background:#f3f6fb;color:#182238}
+header{background:#1746a2;color:white;padding:24px 12px;text-align:center}
+main{max-width:700px;margin:18px auto;padding:0 12px}
+.card{background:white;padding:16px;border-radius:12px;margin-bottom:16px}
 input,select,textarea,button{width:100%;padding:12px;margin:6px 0;border:1px solid #ccd3df;border-radius:8px;font-size:16px}
-button{background:#1746a2;color:white;border:0;font-weight:bold;cursor:pointer}
-.room{border:1px solid #dce2ec;padding:14px;border-radius:10px;margin:10px 0}
-.price{color:#14743a;font-weight:bold;font-size:19px}
-small{color:#596579}
-footer{text-align:center;padding:20px;color:#596579}
+button{background:#1746a2;color:white;border:0;font-weight:bold}
+.secondary{background:#e8eefb;color:#1746a2}
+.room{border:1px solid #ddd;padding:12px;border-radius:10px;margin:10px 0}
+.price{color:green;font-weight:bold;font-size:19px}
+.status{padding:10px;background:#eef3ff;border-radius:8px;margin:8px 0}
+.hidden{display:none}
+a.call{display:block;background:#eaf8ef;padding:10px;text-align:center;margin-top:8px}
 </style>
 </head>
 <body>
@@ -30,12 +28,12 @@ footer{text-align:center;padding:20px;color:#596579}
 <main>
 <section class="card">
 <h2>🔎 कमरा खोजें</h2>
-<input id="search" placeholder="इलाका लिखें, जैसे Salori">
+<input id="search" placeholder="इलाका लिखें जैसे Salori">
 <select id="budget">
 <option value="999999">सभी बजट</option>
-<option value="3000">₹3,000 तक</option>
-<option value="5000">₹5,000 तक</option>
-<option value="8000">₹8,000 तक</option>
+<option value="3000">₹3000 तक</option>
+<option value="5000">₹5000 तक</option>
+<option value="8000">₹8000 तक</option>
 </select>
 <select id="type">
 <option value="">सभी प्रकार</option>
@@ -44,59 +42,190 @@ footer{text-align:center;padding:20px;color:#596579}
 <option>Hostel</option>
 <option>PG</option>
 </select>
-<button onclick="showRooms()">कमरे खोजें</button>
 </section>
+
 <section class="card">
 <h2>📍 उपलब्ध कमरे</h2>
-<p><small>नीचे दिए गए कमरे केवल डेमो उदाहरण हैं।</small></p>
+<div id="roomStatus" class="status">कमरे लोड हो रहे हैं...</div>
 <div id="rooms"></div>
 </section>
+
 <section class="card">
-<h2>➕ अपने कमरे की जानकारी जोड़ें</h2>
-<p><small>कमरे के मालिक यहाँ जानकारी भर सकते हैं।</small></p>
+<h2>🔐 मालिक का लॉगिन</h2>
+<div id="authStatus" class="status">Firebase से जुड़ रहे हैं...</div>
+<div id="loggedOut">
+<input id="email" type="email" placeholder="ईमेल">
+<input id="password" type="password" placeholder="पासवर्ड (कम से कम 6 अक्षर)">
+<button id="signup">नया अकाउंट बनाएँ</button>
+<button id="login" class="secondary">लॉगिन करें</button>
+</div>
+<div id="loggedIn" class="hidden">
+<p>लॉगिन: <b id="userEmail"></b></p>
+<button id="logout" class="secondary">लॉगआउट</button>
+</div>
+</section>
+
+<section class="card hidden" id="addRoom">
+<h2>➕ कमरा जोड़ें</h2>
 <form id="roomForm">
-<input id="area" placeholder="इलाका, जैसे Katra" required>
-<input id="rent" type="number" placeholder="मासिक किराया ₹" min="1" required>
+<input id="area" placeholder="इलाका जैसे Katra" maxlength="80" required>
+<input id="rent" type="number" placeholder="मासिक किराया ₹" min="1" max="100000" required>
 <select id="roomType" required>
-<option value="">कमरे का प्रकार चुनें</option>
+<option value="">कमरे का प्रकार</option>
 <option>Single Room</option>
 <option>Shared Room</option>
 <option>Hostel</option>
 <option>PG</option>
 </select>
-<input id="phone" type="tel" placeholder="संपर्क मोबाइल नंबर" required>
-<textarea id="details" placeholder="सुविधाएँ, नियम आदि"></textarea>
-<button type="submit">कमरे की जानकारी सेव करें</button>
+<input id="phone" type="tel" placeholder="मोबाइल नंबर" required>
+<textarea id="details" placeholder="सुविधाएँ और नियम" maxlength="500"></textarea>
+<button id="saveRoom">कमरा सेव करें</button>
 </form>
-<p><small>अभी जानकारी केवल इसी ब्राउज़र में सेव होगी, सभी लोगों को नहीं दिखेगी।</small></p>
 </section>
 </main>
-<footer>Prayagraj Student Room Finder · विद्यार्थी सहायता</footer>
+<footer style="text-align:center;padding:20px">Prayagraj Student Room Finder</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <script>
-const demos=[
-{area:"Salori",rent:2500,type:"Shared Room",phone:"",details:"डेमो कमरा"},
-{area:"Katra",rent:4000,type:"Single Room",phone:"",details:"डेमो कमरा"},
-{area:"Allahapur",rent:3500,type:"PG",phone:"",details:"डेमो कमरा"},
-{area:"Teliyarganj",rent:3000,type:"Hostel",phone:"",details:"डेमो कमरा"}
-];
-function getRooms(){
-try{return JSON.parse(localStorage.getItem("studentRooms")||"[]")}catch(e){return []}
+const firebaseConfig = {
+ apiKey: "AIzaSyBrHwkB5U9ucBu7HmpHHcMR-fiCCVUN8Pk",
+ authDomain: "prayagraj-room-finder.firebaseapp.com",
+ projectId: "prayagraj-room-finder",
+ storageBucket: "prayagraj-room-finder.firebasestorage.app",
+ messagingSenderId: "804003051044",
+ appId: "1:804003051044:web:855a3b71f65f346daecab1",
+ measurementId: "G-MRP8QDLDMG"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+let rooms=[];
+
+const $=id=>document.getElementById(id);
+
+function message(id,text){
+ $(id).textContent=text;
 }
+
 function showRooms(){
-let q=document.getElementById("search").value.toLowerCase();
-let b=Number(document.getElementById("budget").value);
-let t=document.getElementById("type").value;
-let all=[...demos,...getRooms()];
-let list=all.filter(r=>r.area.toLowerCase().includes(q)&&r.rent<=b&&(!t||r.type===t));
-document.getElementById("rooms").innerHTML=list.length?list.map(r=>`<div class="room"><b>${r.area}</b><p>${r.type}</p><div class="price">₹${r.rent}/महीना</div><p>${r.details||""}</p>${r.phone?`<p>संपर्क: ${r.phone}</p>`:""}${r.phone?`<a href="tel:${r.phone}">कॉल करें</a>`:""}</div>`).join(""):"कोई कमरा नहीं मिला। दूसरा इलाका या बजट चुनें।";
+ const q=$("search").value.toLowerCase().trim();
+ const budget=Number($("budget").value);
+ const type=$("type").value;
+ const list=rooms.filter(r=>
+  r.area.toLowerCase().includes(q)&&
+  r.rent<=budget&&(!type||r.type===type)
+ );
+ const box=$("rooms");
+ box.replaceChildren();
+
+ if(!list.length){
+  message("roomStatus","अभी कोई कमरा नहीं मिला।");
+  return;
+ }
+ message("roomStatus",list.length+" कमरे मिले।");
+
+ list.forEach(r=>{
+  const div=document.createElement("div");
+  div.className="room";
+  const title=document.createElement("h3");
+  title.textContent=r.area;
+  const kind=document.createElement("p");
+  kind.textContent=r.type;
+  const price=document.createElement("p");
+  price.className="price";
+  price.textContent="₹"+r.rent+"/महीना";
+  const details=document.createElement("p");
+  details.textContent=r.details||"";
+  div.append(title,kind,price,details);
+
+  if(r.phone){
+   const a=document.createElement("a");
+   a.className="call";
+   a.textContent="📞 कॉल करें";
+   a.href="tel:"+r.phone;
+   div.append(a);
+  }
+  box.append(div);
+ });
 }
-document.getElementById("roomForm").addEventListener("submit",function(e){
-e.preventDefault();
-let r={area:document.getElementById("area").value.trim(),rent:Number(document.getElementById("rent").value),type:document.getElementById("roomType").value,phone:document.getElementById("phone").value.trim(),details:document.getElementById("details").value.trim()};
-let all=getRooms();all.push(r);
-try{localStorage.setItem("studentRooms",JSON.stringify(all));this.reset();showRooms();alert("इस ब्राउज़र में जानकारी सेव हो गई।");}catch(e){alert("सेव नहीं हो सका।");}
+
+function showAuth(user){
+ $("loggedOut").classList.toggle("hidden",!!user);
+ $("loggedIn").classList.toggle("hidden",!user);
+ $("addRoom").classList.toggle("hidden",!user);
+ $("userEmail").textContent=user?user.email:"";
+ message("authStatus",user?"लॉगिन सफल है। कमरा जोड़ सकते हैं।":"कमरा जोड़ने के लिए लॉगिन करें।");
+}
+
+$("signup").onclick=async()=>{
+ try{
+  await auth.createUserWithEmailAndPassword(
+   $("email").value.trim(),$("password").value
+  );
+  $("password").value="";
+ }catch(e){message("authStatus",e.message);}
+};
+
+$("login").onclick=async()=>{
+ try{
+  await auth.signInWithEmailAndPassword(
+   $("email").value.trim(),$("password").value
+  );
+  $("password").value="";
+ }catch(e){message("authStatus",e.message);}
+};
+
+$("logout").onclick=()=>auth.signOut();
+
+$("roomForm").onsubmit=async e=>{
+ e.preventDefault();
+ const user=auth.currentUser;
+ if(!user)return message("roomStatus","पहले लॉगिन करें।");
+
+ const r={
+  area:$("area").value.trim(),
+  rent:Number($("rent").value),
+  type:$("roomType").value,
+  phone:$("phone").value.trim(),
+  details:$("details").value.trim(),
+  ownerUid:user.uid,
+  createdAt:firebase.firestore.FieldValue.serverTimestamp()
+ };
+
+ if(!r.area||r.area.length>80||r.rent<1||r.rent>100000||
+ !["Single Room","Shared Room","Hostel","PG"].includes(r.type)||
+ !/^[0-9 +()-]{10,18}$/.test(r.phone)||r.details.length>500){
+  return message("roomStatus","जानकारी सही भरें।");
+ }
+
+ $("saveRoom").disabled=true;
+ try{
+  await db.collection("rooms").add(r);
+  $("roomForm").reset();
+  message("roomStatus","कमरा सफलतापूर्वक सेव हो गया।");
+ }catch(err){
+  message("roomStatus","सेव नहीं हुआ: "+err.message);
+ }finally{
+  $("saveRoom").disabled=false;
+ }
+};
+
+auth.onAuthStateChanged(showAuth);
+
+db.collection("rooms").onSnapshot(snapshot=>{
+ rooms=snapshot.docs.map(doc=>doc.data());
+ showRooms();
+},error=>{
+ message("roomStatus","डेटाबेस नियम सेट करना बाकी है: "+error.message);
 });
-showRooms();
+
+$("search").addEventListener("input",showRooms);
+$("budget").addEventListener("change",showRooms);
+$("type").addEventListener("change",showRooms);
 </script>
 </body>
 </html>
