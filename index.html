@@ -129,6 +129,7 @@ function showRooms(){
  message("roomStatus",list.length+" कमरे मिले।");
 
  list.forEach(r=>{
+    const currentUser = auth.currentUser;
   const div=document.createElement("div");
   div.className="room";
   const title=document.createElement("h3");
@@ -148,6 +149,29 @@ function showRooms(){
    a.textContent="📞 कॉल करें";
    a.href="tel:"+r.phone;
    div.append(a);
+  }
+    if(currentUser && r.ownerUid === currentUser.uid){
+    const del = document.createElement("button");
+    del.textContent = "🗑️ अपना कमरा हटाएँ";
+    del.onclick = async () => {
+      if(!confirm("क्या आप यह कमरा हटाना चाहते हैं?")) return;
+      try {
+        const snap = await db.collection("rooms")
+          .where("ownerUid","==",currentUser.uid)
+          .get();
+        const doc = snap.docs.find(d =>
+          d.data().area === r.area &&
+          d.data().rent === r.rent &&
+          d.data().phone === r.phone
+        );
+        if(!doc) throw new Error("कमरे का रिकॉर्ड नहीं मिला");
+        await doc.ref.delete();
+        alert("कमरा हटा दिया गया।");
+      } catch(e) {
+        alert("कमरा नहीं हट सका: " + e.message);
+      }
+    };
+    div.append(del);
   }
   box.append(div);
  });
